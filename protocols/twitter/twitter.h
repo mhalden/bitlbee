@@ -68,7 +68,9 @@ struct twitter_data {
 	gint main_loop_id;
 	gint filter_update_id;
 	struct http_request *stream;
+	time_t stream_opentime;
 	struct http_request *filter_stream;
+	time_t filter_stream_opentime;
 	struct groupchat *timeline_gc;
 	gint http_fails;
 	twitter_flags_t flags;

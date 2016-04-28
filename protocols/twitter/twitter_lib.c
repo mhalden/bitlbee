@@ -1009,8 +1009,23 @@ static void twitter_http_stream(struct http_request *req)
 	if ((req->flags & HTTPC_EOF) || !req->reply_body) {
 		if (req == td->stream) {
 			td->stream = NULL;
+
+			if (req->status_code == 200 &&
+			    td->stream_opentime + 3 < time(NULL)) {
+				debug("Reconnecting to twitter stream.");
+				twitter_open_stream(ic);
+				twitter_get_timeline(ic, -1);
+				return;
+			}
 		} else if (req == td->filter_stream) {
 			td->filter_stream = NULL;
+
+			if (req->status_code == 200 &&
+			    td->filter_stream_opentime + 3 < time(NULL)) {
+				debug("Reconnecting to twitter filter stream.");
+				twitter_open_filter_stream(ic);
+				return;
+			}
 		}
 
 		imcb_error(ic, "Stream closed (%s)", req->status_string);
@@ -1185,6 +1200,7 @@ gboolean twitter_open_stream(struct im_connection *ic)
 		/* This flag must be enabled or we'll get no data until EOF
 		   (which err, kind of, defeats the purpose of a streaming API). */
 		td->stream->flags |= HTTPC_STREAMING;
+		td->stream_opentime = time(NULL);
 		return TRUE;
 	}
 
@@ -1240,6 +1256,7 @@ static gboolean twitter_filter_stream(struct im_connection *ic)
 		/* This flag must be enabled or we'll get no data until EOF
 		   (which err, kind of, defeats the purpose of a streaming API). */
 		td->filter_stream->flags |= HTTPC_STREAMING;
+		td->filter_stream_opentime = time(NULL);
 		ret = TRUE;
 	}
 
