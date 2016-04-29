@@ -25,10 +25,14 @@ ifdef DOC
 	$(MAKE) -C doc
 endif
 
-uninstall: uninstall-bin uninstall-doc 
+ifdef DEVEL
+INSTALL_DEV = install-dev
+UNINSTALL_DEV = uninstall-dev
+endif
+uninstall: uninstall-bin uninstall-doc  $(UNINSTALL_DEV)
 	@echo -e '\nmake uninstall does not remove files in '$(DESTDIR)$(ETCDIR)', you can use make uninstall-etc to do that.\n'
 
-install: install-bin install-doc install-plugins
+install: install-bin install-doc install-plugins install-etc $(INSTALL_DEV)
 	@echo
 	@echo Installed successfully
 	@echo
@@ -37,7 +41,9 @@ install: install-bin install-doc install-plugins
 ifdef SYSTEMDSYSTEMUNITDIR
 	@echo If you want to start BitlBee using systemd, try \"make install-systemd\".
 endif
+ifndef DEVEL
 	@echo To be able to compile third party plugins, run \"make install-dev\"
+endif
 	@echo
 
 .PHONY:   install   install-bin   install-etc   install-doc install-plugins install-systemd install-dev \
@@ -111,12 +117,20 @@ uninstall-dev:
 
 install-etc:
 	mkdir -p $(DESTDIR)$(ETCDIR)
-	$(INSTALL) -m 0644 $(_SRCDIR_)motd.txt $(DESTDIR)$(ETCDIR)/motd.txt
-	$(INSTALL) -m 0644 $(_SRCDIR_)bitlbee.conf $(DESTDIR)$(ETCDIR)/bitlbee.conf
+	$(INSTALL) -m 0644 $(_SRCDIR_)motd.txt $(DESTDIR)$(ETCDIR)/motd.txt.sample
+	$(INSTALL) -m 0644 $(_SRCDIR_)bitlbee.conf $(DESTDIR)$(ETCDIR)/bitlbee.conf.sample
+	@if ! [ -e $(DESTDIR)$(ETCDIR)/motd.txt ]; then \
+		$(INSTALL) -m 0644 $(_SRCDIR_)motd.txt $(DESTDIR)$(ETCDIR)/motd.txt; \
+	fi
+	@if ! [ -e $(DESTDIR)$(ETCDIR)/bitlbee.conf ]; then \
+		$(INSTALL) -m 0644 $(_SRCDIR_)bitlbee.conf $(DESTDIR)$(ETCDIR)/bitlbee.conf; \
+	fi
 
 uninstall-etc:
 	rm -f $(DESTDIR)$(ETCDIR)/motd.txt
+	rm -f $(DESTDIR)$(ETCDIR)/motd.txt.sample
 	rm -f $(DESTDIR)$(ETCDIR)/bitlbee.conf
+	rm -f $(DESTDIR)$(ETCDIR)/bitlbee.conf.sample
 	-rmdir $(DESTDIR)$(ETCDIR)
 
 install-plugins: install-plugin-otr install-plugin-skype

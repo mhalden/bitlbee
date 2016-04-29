@@ -47,6 +47,7 @@ asan=0
 plugins=1
 otr=0
 skype=0
+devel=0
 
 events=glib
 ssl=auto
@@ -150,6 +151,7 @@ Option		Description				Default
 		Disable/enable OTR encryption support	$otr
 --skype=0/1/plugin
 		Disable/enable Skype support		$skype
+--devel=0/1	Disable/enable header install	$devel
 
 --events=...	Event handler (glib, libevent)		$events
 --ssl=...	SSL library to use (gnutls, nss, openssl, auto)
@@ -294,6 +296,10 @@ if [ "$debug" = "1" ]; then
 	CFLAGS="$CFLAGS -g3 -DDEBUG -O0"
 else
 	[ -z "$CFLAGS" ] && CFLAGS="-O2 -fno-strict-aliasing"
+fi
+
+if [ "$devel" = "1" ]; then
+	echo 'DEVEL=1' >> Makefile.settings
 fi
 
 if [ "$pie" = "1" ]; then
